@@ -3,6 +3,7 @@
 //mongodb://<dbuser>:<dbpassword>@ds157964.mlab.com:57964/jonbase
 var mongo = require("mongodb").MongoClient;
 
+//Secret stuff!
 var user = process.env.MONGODB_USER;
 var pwd = process.env.MONGODB_PASSWORD;
 var url = "mongodb://"+user+":"+pwd+"@ds157964.mlab.com:57964/jonbase";
@@ -20,7 +21,8 @@ exports.getRecent = function(callback){
         console.log(err);
         throw err;
       }
-      console.log(result);
+       //Remove the unnecessary _id id from each item since it's useless
+      result.forEach(function(item){delete item._id});
       return callback(result);
     });
     db.close();

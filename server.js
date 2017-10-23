@@ -16,7 +16,7 @@ var database = require('./databaseInteractions.js');
 
 //Init variables for storing data and list of latest searches
 var searches = [];
-var searches2 = [];
+//var searches2 = [];
 var latestSearchData = [];
 database.getRecent(processDBInfo);
 
@@ -24,22 +24,10 @@ database.getRecent(processDBInfo);
 //Not much processing done here, but this is used as the callback function that
 //Allows us to access the results withing the scope of server.js
 function processDBInfo(recentList){
-  searches2 = recentList;
+  searches = recentList;
   console.log("This " + recentList[0].searchTerm);
 }
 
-//Something to help filter the use of incoming data
-function filterBingShit(rawInput){
-  //Here we remove the problem strings I have found so far.
-  /*
-  var corrected = rawInput.toString().replace(new RegExp(/\"\,\"/g), "");
-  var corrected2 = corrected.replace(new RegExp(/\:\,/g), '\:');
-  var corrected3 = corrected2.replace(new RegExp(/\"\,\:/g), "\"\:");
-  corrected3 = corrected3.replace(new RegExp(/\'\,\'\,/g), "\,");
-  
-  return corrected3;*/
-  return rawInput;
-}
 
 //Callback function for handling data coming in from the image search API
 function calbak (data, count, resp) {
@@ -50,8 +38,6 @@ function calbak (data, count, resp) {
   var filtered = data;
   //Handling data
   var array = JSON.parse(filtered).value;
-  //var count = 0;
-  //var respArr = [];
   latestSearchData = [];
   
   for (var i = 0; i < array.length; i++) {
@@ -61,11 +47,9 @@ function calbak (data, count, resp) {
     el.size = array[i].contentSize;
     //Add to local cache of latest search
     latestSearchData.push(el);
-    //respArr.push(el);
+    
   }
-  
   drawLatestData(latestSearchData, count, resp);
-  //resp.send(respArr);  
 }
 
 function drawLatestData(data, count, resp){
@@ -74,7 +58,7 @@ function drawLatestData(data, count, resp){
   }
   
   //Initializing our HTML document
-  //TODO: Do this using a pre-made model document
+  //In the future this should be done using a pre-made document
   var htmlHead = '<html><head><title>Welcome to Glitch!</title><meta name="description" content="A cool thing made with Glitch"><link id="favicon" rel="icon" href="https://glitch.com/edit/favicon-app.ico" type="image/x-icon"><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1">    <link rel="stylesheet" href="/style.css">  </head> '; 
   var htmlBodyStart = '<body><header><h1>Some Things</h1></header><main>';
   var els = "<h2>bbb</h2>";
@@ -82,9 +66,8 @@ function drawLatestData(data, count, resp){
   
   var sendable = data.slice(count - 10, count);
   sendable.forEach(function(el){
-    //console.log(el);
+    
     var j = '<h6>' + el.name + '</h6><p>' + el.url + '</p>';
-    //console.log(j);
     els = els + j;
   });
   
@@ -123,7 +106,7 @@ app.get("/api/imagesearch", function(request, response){
     
     //we add the current term to the array of recent searches
     searches.unshift(query.q);
-    searches2.unshift({searchTerm:query.q,time:Date.now()});
+    //searches2.unshift({searchTerm:query.q,time:Date.now()});
     //Adding the current search term to the database
     database.updateLatest(query.q, function(){
       console.log("Got that update done!");
@@ -187,14 +170,14 @@ app.get("/api/imagesearch", function(request, response){
 
 app.get("/api/latest/imagesearch/", function(request, response){
   console.log("Latest started"); 
-  response.send(JSON.stringify(searches2));
+  response.send(JSON.stringify(searches));
 });
 
 //https://cat-ph.glitch.me/api/latest/imagesearch
 app.get("/", function (request, response) {
   //Give the clueless user a clue as to the use of the server
   //TODO: Write detailed instructions once the infrastructure has been implemented
-  response.send("check out /api/imagesearch/.");
+  response.send("<p>Check out /api/imagesearch.</p><p>Add ?q=-yoursearchtermhere- to search. Add &count=-DivisibleBy10- to paginate. For example:</p><p><a href='https://cat-ph.glitch.me/api/imagesearch?q=server&count=10'>Click here</a></p><p>Furthermore, use <a href='https://cat-ph.glitch.me/api/latest/imagesearch'>/api/latest/imagesearch</a> to see a list of latest searches.");
 });
 
 // listen for requests :)
